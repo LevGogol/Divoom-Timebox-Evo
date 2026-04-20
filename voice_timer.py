@@ -84,12 +84,19 @@ def parse_timer(words: list[str]) -> tuple[int, int] | None:
     return None
 
 
-def connect() -> socket.socket:
-    sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-    sock.settimeout(10)
-    sock.connect((MAC_ADDRESS, RFCOMM_CHANNEL))
-    sock.settimeout(None)
-    return sock
+def connect(retries: int = 10, delay: float = 10.0) -> socket.socket:
+    for attempt in range(1, retries + 1):
+        try:
+            sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+            sock.settimeout(10)
+            sock.connect((MAC_ADDRESS, RFCOMM_CHANNEL))
+            sock.settimeout(None)
+            return sock
+        except OSError as e:
+            print(f"Connection attempt {attempt}/{retries} failed: {e}")
+            if attempt < retries:
+                time.sleep(delay)
+    raise OSError(f"Could not connect to {MAC_ADDRESS} after {retries} attempts")
 
 
 def display_progress(remaining: int, total: int, sock: socket.socket) -> None:
