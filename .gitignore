@@ -2,9 +2,27 @@
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
 
 # Virtual environment
 .venv/
 
 # Vosk model (download separately, see README)
 vosk-model-small-ru-0.22/
+
+# Ruff cache
+.ruff_cache/
+
+# mypy
+.mypy_cache/
+
+# pytest
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db

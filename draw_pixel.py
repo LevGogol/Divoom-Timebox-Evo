@@ -37,46 +37,23 @@ def main():
     b = int(sys.argv[5]) if len(sys.argv) > 5 else 0
 
     if not (0 <= x <= 15 and 0 <= y <= 15):
-        print("Error: x and y must be between 0 and 15")
         sys.exit(1)
 
-    print(f"Pixel: ({x}, {y}), Color: ({r}, {g}, {b})")
-
-    # Build messages
     brightness_msg = build_brightness_message(100)
     pixels, colors = create_pixel_image(x, y, (r, g, b))
     image_msg = build_image_message(pixels, colors)
 
-    # Connect via Bluetooth RFCOMM
-    print(f"Connecting to {MAC_ADDRESS} (RFCOMM channel {RFCOMM_CHANNEL})...")
     sock = socket.socket(
         socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM
     )
     sock.settimeout(10)
     try:
         sock.connect((MAC_ADDRESS, RFCOMM_CHANNEL))
-        print("Connected!")
-
         time.sleep(0.5)
-
-        print("Setting brightness to 100%...")
         sock.send(brightness_msg)
         time.sleep(0.1)
-
-        print("Sending pixel image...")
         sock.send(image_msg)
-
-        print("Done! Check your Timebox Evo display.")
         time.sleep(1)
-    except OSError as e:
-        print(f"Connection failed: {e}")
-        print()
-        print("Troubleshooting:")
-        print("  1. Make sure Timebox Evo is ON and in Bluetooth range")
-        print("  2. Pair the device in Windows Bluetooth settings first")
-        print("  3. Verify the MAC address is correct")
-        print("  4. Try changing RFCOMM_CHANNEL to 2 in draw_pixel.py")
-        sys.exit(1)
     finally:
         sock.close()
 
