@@ -8,7 +8,7 @@ Ctrl+C to stop.
 import socket
 import time
 
-from draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
+from app.draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
 
 
 def main():

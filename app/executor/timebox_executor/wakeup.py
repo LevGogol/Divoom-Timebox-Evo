@@ -1,2 +1,0 @@
-def wakeup():
-    print("wakeUp")

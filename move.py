@@ -7,8 +7,8 @@ import msvcrt
 import socket
 import time
 
-from protocol import build_brightness_message, build_image_message
-from draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
+from app.protocol import build_brightness_message, build_image_message
+from app.draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
 
 
 def build_frame(x: int, y: int) -> bytes:

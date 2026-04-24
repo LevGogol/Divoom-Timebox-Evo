@@ -8,16 +8,26 @@ from pathlib import Path
 MODEL_PATH = Path("vosk-model-small-ru-0.22")
 SAMPLE_RATE = 16000
 
+
 class VoiceCommander:
     def __init__(self, model_path=MODEL_PATH, sample_rate=SAMPLE_RATE):
         self._queue: queue.Queue[str] = queue.Queue()
         self._model_path = model_path
         self._sample_rate = sample_rate
+        self._stop_event = threading.Event()
         self._thread = threading.Thread(target=self._listen, daemon=True)
         self._thread.start()
 
+
     def next_command(self) -> str:
-        return self._queue.get()
+        while not self._stop_event.is_set():
+            try:
+                return self._queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            except KeyboardInterrupt:
+                self._stop_event.set()
+                raise
 
     def _listen(self):
         print(f"[VoiceCommander] Loading model from '{self._model_path}'...")
@@ -40,8 +50,11 @@ class VoiceCommander:
         )
         print("[VoiceCommander] Listening for any words...")
         try:
-            while True:
-                data = audio_queue.get()
+            while not self._stop_event.is_set():
+                try:
+                    data = audio_queue.get(timeout=0.1)
+                except queue.Empty:
+                    continue
                 if rec.AcceptWaveform(data):
                     text = json.loads(rec.Result()).get("text", "").lower()
                 else:

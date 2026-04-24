@@ -6,8 +6,8 @@ Edit the pixel map below and run: python draw.py
 import socket
 import time
 
-from protocol import build_brightness_message, build_image_message
-from draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
+from app.protocol import build_brightness_message, build_image_message
+from app.draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
 
 # --- Edit here ---
 

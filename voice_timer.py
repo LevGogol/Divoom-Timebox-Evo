@@ -20,8 +20,8 @@ import pyaudio
 from playsound import playsound
 from vosk import KaldiRecognizer, Model
 
-from draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
-from protocol import build_brightness_message, build_image_message
+from app.draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
+from app.protocol import build_brightness_message, build_image_message
 
 WAKE_WORDS = {"коробка", "колонка"}
 STOP_WORDS = {"стоп", "останови", "остановить"}
