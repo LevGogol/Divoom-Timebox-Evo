@@ -9,20 +9,33 @@ MODEL_PATH = Path("vosk-model-small-ru-0.22")
 SAMPLE_RATE = 16000
 
 
+
+from app.executor.timebox_executor.timebox_executor import TimeboxExecutor
+from app.executor.console_executor import ConsoleExecutor
+
 class VoiceCommander:
-    def __init__(self, model_path=MODEL_PATH, sample_rate=SAMPLE_RATE):
+    def __init__(self, executor, model_path=MODEL_PATH, sample_rate=SAMPLE_RATE):
         self._queue: queue.Queue[str] = queue.Queue()
         self._model_path = model_path
         self._sample_rate = sample_rate
         self._stop_event = threading.Event()
         self._thread = threading.Thread(target=self._listen, daemon=True)
         self._thread.start()
+        self._executor = executor
+
 
 
     def next_command(self) -> str:
+        last_command = getattr(self, '_last_command', None)
         while not self._stop_event.is_set():
             try:
-                return self._queue.get(timeout=0.1)
+                command = self._queue.get(timeout=0.1)
+                if command and command != last_command:
+                    self._executor.execute(command)
+                    self._last_command = command
+                    return command
+                else:
+                    continue
             except queue.Empty:
                 continue
             except KeyboardInterrupt:

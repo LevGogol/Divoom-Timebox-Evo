@@ -17,18 +17,34 @@ class TimeboxExecutor:
     def execute(self, command: str) -> None:
         self._console_executor.execute(command)
         cmd = command.strip().lower()
-        if cmd in self.WAKE_WORDS:
-            WakeupCommand().execute()
+        words = cmd.split()
+
+        # Найти все индексы ключевых слов
+        matches = []
+        for i, word in enumerate(words):
+            if word in self.WAKE_WORDS:
+                matches.append((i, 'wakeup'))
+            elif word == "яркость":
+                matches.append((i, 'brightness'))
+
+        if not matches:
+            IgnoreCommand().execute()
             return
 
-        if cmd.startswith("яркость"):
-            parts = cmd.split()
-            if len(parts) == 2:
-                value = self.parse_brightness(parts[1])
+        # Выполнить только последнюю найденную команду
+        idx, cmd_type = matches[-1]
+        if cmd_type == 'wakeup':
+            WakeupCommand().execute()
+            return
+        elif cmd_type == 'brightness':
+            # Попробовать взять следующее слово как значение яркости
+            if idx + 1 < len(words):
+                value = self.parse_brightness(words[idx + 1])
                 if value is not None:
                     BrightnessCommand(value).execute()
                     return
-
+            IgnoreCommand().execute()
+            return
         IgnoreCommand().execute()
     _WORDS_TO_NUM = {
         "ноль": 0, "один": 1, "одна": 1, "одну": 1, "два": 2, "две": 2, "три": 3, "четыре": 4, "пять": 5,
