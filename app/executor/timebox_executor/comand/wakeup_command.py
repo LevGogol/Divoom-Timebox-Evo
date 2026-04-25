@@ -40,8 +40,6 @@ class WakeupCommand:
             sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
             sock.settimeout(10)
             sock.connect((MAC_ADDRESS, RFCOMM_CHANNEL))
-            time.sleep(0.5)
-            sock.send(build_brightness_message(100))
             time.sleep(0.1)
             display_smiley(sock)
             time.sleep(1)
