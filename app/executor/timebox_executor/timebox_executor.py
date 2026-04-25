@@ -1,18 +1,33 @@
 from app.executor.timebox_executor.comand.ignore_command import IgnoreCommand
 from app.executor.timebox_executor.comand.wakeup_command import WakeupCommand
 from app.executor.timebox_executor.comand.brightness_command import BrightnessCommand
+from app.executor.timebox_executor.comand.timer_command import TimerCommand
+from app.executor.timebox_executor.comand.stop_command import StopCommand
 
 class FakeExecutor:
     def execute(self, command: str) -> None:
         pass
 
 class TimeboxExecutor:
+
     WAKE_WORDS = {"коробка", "колонка"}
+
+    def _parse_number(self, words: list[str]) -> tuple[int, int]:
+        total = 0
+        i = 0
+        if i < len(words) and words[i] in self._WORDS_TO_NUM:
+            total += self._WORDS_TO_NUM[words[i]]
+            i += 1
+        if i < len(words) and words[i] in self._WORDS_TO_NUM:
+            total += self._WORDS_TO_NUM[words[i]]
+            i += 1
+        return total, i
 
     def __init__(self, console_executor=None):
         if console_executor is None:
             console_executor = FakeExecutor()
         self._console_executor = console_executor
+        self._active_timer = None
 
     def execute(self, command: str) -> None:
         self._console_executor.execute(command)
@@ -26,6 +41,10 @@ class TimeboxExecutor:
                 matches.append((i, 'wakeup'))
             elif word == "яркость":
                 matches.append((i, 'brightness'))
+            elif word == "таймер":
+                matches.append((i, 'timer'))
+            elif word == "стоп":
+                matches.append((i, 'stop'))
 
         if not matches:
             IgnoreCommand().execute()
@@ -45,7 +64,47 @@ class TimeboxExecutor:
                     return
             IgnoreCommand().execute()
             return
+        elif cmd_type == 'timer':
+            # Попробовать взять следующее слово как число, затем единицу измерения
+            if idx + 1 < len(words):
+                minutes, seconds = self.parse_timer(words[idx+1:])
+                if minutes is not None:
+                    if self._active_timer:
+                        self._active_timer.stop()
+                    timer = TimerCommand(minutes, seconds)
+                    self._active_timer = timer
+                    timer.execute()
+                    return
+            IgnoreCommand().execute()
+            return
+        elif cmd_type == 'stop':
+            if self._active_timer:
+                StopCommand(self._active_timer).execute()
+                self._active_timer = None
+            else:
+                IgnoreCommand().execute()
+            return
         IgnoreCommand().execute()
+
+    def parse_timer(self, words: list[str]) -> tuple[int|None, int]:
+        # Пример: ['на', 'пять', 'минут'] или ['тридцать', 'секунд']
+        # Удаляем 'на', если есть
+        if words and words[0] == 'на':
+            words = words[1:]
+        # Парсим число
+        num, consumed = self._parse_number(words)
+        if num == 0 or consumed == 0:
+            return None, 0
+        rest = words[consumed:]
+        if not rest:
+            return None, 0
+        unit = rest[0]
+        if unit in ("минута", "минуту", "минуты", "минут"):
+            return num, 0
+        if unit in ("секунда", "секунду", "секунды", "секунд"):
+            return num // 60, num % 60
+        return None, 0
+
     _WORDS_TO_NUM = {
         "ноль": 0, "один": 1, "одна": 1, "одну": 1, "два": 2, "две": 2, "три": 3, "четыре": 4, "пять": 5,
         "шесть": 6, "семь": 7, "восемь": 8, "девять": 9, "десять": 10, "одиннадцать": 11, "двенадцать": 12,
