@@ -1,7 +1,8 @@
 from app.executor.timebox_executor.comand.ignore_command import IgnoreCommand
-from app.executor.timebox_executor.comand.wakeup_command import WakeupCommand
-from app.executor.timebox_executor.comand.timer_command import TimerCommand
 from app.executor.timebox_executor.comand.stop_command import StopCommand
+from app.executor.timebox_executor.comand.timer_command import TimerCommand
+from app.executor.timebox_executor.comand.wakeup_command import WakeupCommand
+
 
 class FakeExecutor:
     def execute(self, command: str) -> None:
@@ -84,7 +85,7 @@ class TimeboxExecutor:
                 StopCommand(self._active_timer).execute()
                 self._active_timer = None
             else:
-                IgnoreCommand().execute()
+                StopCommand().execute()
             return
         IgnoreCommand().execute()
 

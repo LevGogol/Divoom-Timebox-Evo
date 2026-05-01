@@ -1,5 +1,7 @@
 import socket
+import threading
 import time
+
 from app.draw_pixel import MAC_ADDRESS, RFCOMM_CHANNEL
 from app.protocol import build_brightness_message, build_image_message
 
@@ -34,19 +36,21 @@ def display_smiley(sock: socket.socket) -> None:
             pixels.append(palette.index(color))
     sock.send(build_image_message(pixels, palette))
 
+def _run():
+    try:
+        sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+        sock.settimeout(10)
+        sock.connect((MAC_ADDRESS, RFCOMM_CHANNEL))
+        time.sleep(0.1)
+        display_smiley(sock)
+    except Exception as e:
+        print(f"[WakeupCommand] Ошибка: {e}")
+    finally:
+        try:
+            sock.close()
+        except Exception:
+            pass
+
 class WakeupCommand:
     def execute(self):
-        try:
-            sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-            sock.settimeout(10)
-            sock.connect((MAC_ADDRESS, RFCOMM_CHANNEL))
-            time.sleep(0.1)
-            display_smiley(sock)
-            time.sleep(1)
-        except Exception as e:
-            print(f"[WakeupCommand] Ошибка: {e}")
-        finally:
-            try:
-                sock.close()
-            except Exception:
-                pass
+        threading.Thread(target=_run, daemon=True).start()
