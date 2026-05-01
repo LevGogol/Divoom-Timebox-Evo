@@ -1,6 +1,5 @@
 from app.executor.timebox_executor.comand.ignore_command import IgnoreCommand
 from app.executor.timebox_executor.comand.wakeup_command import WakeupCommand
-from app.executor.timebox_executor.comand.brightness_command import BrightnessCommand
 from app.executor.timebox_executor.comand.timer_command import TimerCommand
 from app.executor.timebox_executor.comand.stop_command import StopCommand
 
@@ -23,11 +22,14 @@ class TimeboxExecutor:
             i += 1
         return total, i
 
-    def __init__(self, console_executor=None):
+    def __init__(self, console_executor=None, power=None):
         if console_executor is None:
             console_executor = FakeExecutor()
         self._console_executor = console_executor
+        self._power = power
         self._active_timer = None
+        if power is not None:
+            power.start()
 
     def execute(self, command: str) -> None:
         self._console_executor.execute(command)
@@ -57,10 +59,10 @@ class TimeboxExecutor:
             return
         elif cmd_type == 'brightness':
             # Попробовать взять следующее слово как значение яркости
-            if idx + 1 < len(words):
+            if idx + 1 < len(words) and self._power is not None:
                 value = self.parse_brightness(words[idx + 1])
                 if value is not None:
-                    BrightnessCommand(value).execute()
+                    self._power.set(value)
                     return
             IgnoreCommand().execute()
             return

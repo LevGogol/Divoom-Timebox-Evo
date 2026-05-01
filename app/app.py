@@ -1,5 +1,4 @@
 from app.commander import Commander
-from app.executor import Executor
 
 
 class App:

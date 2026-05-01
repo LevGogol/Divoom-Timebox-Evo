@@ -122,6 +122,36 @@ def build_volume_message(volume: int) -> bytes:
     return _wrap_message(payload)
 
 
+def build_clock_message(
+    clock_type: int = 0,
+    show_time: bool = True,
+    show_weather: bool = False,
+    show_temperature: bool = False,
+    show_calendar: bool = False,
+    color: tuple[int, int, int] = (255, 255, 255),
+) -> bytes:
+    """Switch device to the clock channel.
+
+    Args:
+        clock_type: 0=Full screen, 1=Rainbow, 2=With Box,
+                    3=Analog Square, 4=Full Screen negative, 5=Analog Round.
+        show_time: Whether to display the time.
+        show_weather: Whether to display the weather.
+        show_temperature: Whether to display the temperature.
+        show_calendar: Whether to display the calendar.
+        color: Clock color as (R, G, B).
+    """
+    tt = f"{clock_type:02x}"
+    xx = "01" if show_time else "00"
+    ww = "01" if show_weather else "00"
+    ee = "01" if show_temperature else "00"
+    cc = "01" if show_calendar else "00"
+    r, g, b = color
+    rrggbb = f"{r:02x}{g:02x}{b:02x}"
+    payload = f"450001{tt}{xx}{ww}{ee}{cc}{rrggbb}"
+    return _wrap_message(payload)
+
+
 def _wrap_message(payload: str) -> bytes:
     """Wrap a hex payload in the Timebox Evo message frame.
 
